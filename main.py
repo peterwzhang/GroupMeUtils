@@ -2,7 +2,7 @@ from Group import *
 from config import TOKEN
 from groupy.client import Client
 
-
+# this is a temporary testing file
 if __name__ == "__main__":
     client = Client.from_token(TOKEN)
     client.user.get_me()
