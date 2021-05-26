@@ -7,7 +7,7 @@ from tkinter import *
 # this is a temporary testing file
 if __name__ == "__main__":
     client = Client.from_token(TOKEN)
-    client.user.get_me()
+    print(client.user.get_me())
     # group_list = list()
     # for group in client.groups.list(omit="memberships"):
     #     print(group.image_url)
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     # print_groups(client)
     # print_members(group)
 
-    LoginGUI()
+    GUI()
 
 
 
