@@ -21,6 +21,12 @@ def get_img_from_url(url, x, y):
     return render
 
 
+def create_empty_img(x, y):
+    img = Image.new(mode='RGB', size=(x, y))
+    render = ImageTk.PhotoImage(img)
+    return render
+
+
 class GUI:
     client: Client = None
     main_frame: tk.Frame = None
@@ -117,6 +123,7 @@ class GUI:
             self.main_frame,
             text='Load Groups'
         )
+        load_groups_btn.bind('<Button-1>', lambda e: self.setup_groups_menu())
         load_groups_btn.grid(row=2, column=0)
 
         save_pfp_btn = tk.Button(
@@ -143,15 +150,48 @@ class GUI:
         dm_frame.bind('<Configure>', lambda e: config_frame(dm_canvas))
         self.load_dms(dm_frame)
 
-    #TODO: picture for no avatar
+    # TODO: picture for no avatar
     def load_dms(self, frame):
         row = 0
         for chat in self.client.chats.list_all():
             if chat.other_user['avatar_url'] != '':
                 pfp_render = get_img_from_url(chat.other_user['avatar_url'], 50, 50)
-                pfp = tk.Label(frame, image=pfp_render)
-                pfp.image = pfp_render
-                pfp.grid(row=row, column=0)
+            else:
+                pfp_render = create_empty_img(50, 50)
+            pfp = tk.Label(frame, image=pfp_render)
+            pfp.image = pfp_render
+            pfp.grid(row=row, column=0)
             tk.Label(frame, text=chat.other_user['name']).grid(row=row, column=1)
             row += 1
 
+    def setup_groups_menu(self):
+        self.clear_main()
+        self.setup_window('GroupMeUtils', '300x600', False, False)
+        group_canvas = tk.Canvas(
+            self.main_frame,
+            borderwidth=0
+        )
+        group_frame = tk.Frame(
+            group_canvas
+        )
+        vsb = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=group_canvas.yview)
+        group_canvas.configure(yscrollcommand=vsb.set)
+        vsb.pack(side=tk.RIGHT, fill=tk.Y)
+        group_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        group_canvas.create_window((0, 0), window=group_frame, anchor=tk.NW)
+        group_frame.bind('<Configure>', lambda e: config_frame(group_canvas))
+        self.load_groups(group_frame)
+
+    # TODO: picture for no group avatar
+    def load_groups(self, frame):
+        row = 0
+        for group in self.client.groups.list(omit='memberships'):
+            if group.image_url is not None:
+                pfp_render = get_img_from_url(group.image_url, 50, 50)
+            else:
+                pfp_render = create_empty_img(50, 50)
+            pfp = tk.Label(frame, image=pfp_render)
+            pfp.image = pfp_render
+            pfp.grid(row=row, column=0)
+            tk.Label(frame, text=group.name).grid(row=row, column=1)
+            row += 1

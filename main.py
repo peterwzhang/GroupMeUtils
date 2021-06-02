@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # for chat in client.chats.list_all():
     #     print(chat.other_user["name"])
 
-    # group = client.groups.get('61124351') this is an empty test group
+    # group = client.groups.get('61124351')  # this is an empty test group
     # print(group.data)
     # print(client.user.get_me())
     # for msg in group.messages.list_all():
