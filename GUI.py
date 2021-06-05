@@ -135,6 +135,12 @@ class GUI:
     def setup_dms_menu(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '300x600', False, False)
+        return_btn = tk.Button(
+            self.main_frame,
+            text='Return'
+        )
+        return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
+        return_btn.pack()
         dm_canvas = tk.Canvas(
             self.main_frame,
             borderwidth=0
@@ -167,6 +173,12 @@ class GUI:
     def setup_groups_menu(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '300x600', False, False)
+        return_btn = tk.Button(
+            self.main_frame,
+            text='Return'
+        )
+        return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
+        return_btn.pack()
         group_canvas = tk.Canvas(
             self.main_frame,
             borderwidth=0
