@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 import tkinter as tk
 import requests
 import webbrowser
+import copy
 
 
 def config_frame(canvas):
@@ -27,7 +28,7 @@ def create_empty_img(x, y):
     return render
 
 
-class GUI:
+class MainGUI:
     client: Client = None
     main_frame: tk.Frame = None
     root: tk.Tk = None
@@ -206,4 +207,71 @@ class GUI:
             pfp.image = pfp_render
             pfp.grid(row=row, column=0)
             tk.Label(frame, text=group.name).grid(row=row, column=1)
+            load_btn = tk.Button(
+                frame,
+                text='Open'
+            )
+            load_btn.bind('<Button-1>', lambda e, g=group: self.open_group_window(g))
+            load_btn.grid(row=row, column=2)
+            row += 1
+
+    def open_group_window(self, group):
+        new_group_win = tk.Toplevel(self.root)
+        new_group_win.title(group.name)
+        new_group_win.geometry('600x600')
+        new_group_win.resizable(600, 600)
+        action_frame = tk.Frame(
+            new_group_win,
+            width=300,
+            height=600
+        )
+        action_frame.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
+        member_frame = tk.Frame(
+            new_group_win,
+            width=300,
+            height=600
+        )
+        member_frame.grid(row=0, column=1, sticky=tk.N+tk.S+tk.E+tk.W)
+        if group.image_url is not None:
+            pfp_render = get_img_from_url(group.image_url, 150, 150)
+        else:
+            pfp_render = create_empty_img(150, 150)
+        pfp = tk.Label(action_frame, image=pfp_render)
+        pfp.image = pfp_render
+        pfp.pack(anchor=tk.CENTER)
+        name_lbl = tk.Label(
+            action_frame,
+            text=group.name
+        )
+        name_lbl.pack(anchor=tk.CENTER)
+
+        mem_canvas = tk.Canvas(
+            member_frame,
+            borderwidth=0
+        )
+        mem_frame = tk.Frame(
+            mem_canvas
+        )
+        vsb = tk.Scrollbar(member_frame, orient=tk.VERTICAL, command=mem_canvas.yview)
+        mem_canvas.configure(yscrollcommand=vsb.set)
+        vsb.pack(side=tk.RIGHT, fill=tk.Y)
+        mem_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        mem_canvas.create_window((0, 0), window=mem_frame, anchor=tk.NW)
+        mem_frame.bind('<Configure>', lambda e: config_frame(mem_canvas))
+        self.load_members(mem_frame, group)
+
+        new_group_win.mainloop()
+
+    def load_members(self, frame, group):
+        row = 0
+        group.refresh_from_server()
+        for mem in group.members:
+            if mem.image_url != '' and mem.image_url is not None:
+                pfp_render = get_img_from_url(mem.image_url, 50, 50)
+            else:
+                pfp_render = create_empty_img(50, 50)
+            pfp = tk.Label(frame, image=pfp_render)
+            pfp.image = pfp_render
+            pfp.grid(row=row, column=0)
+            tk.Label(frame, text=mem.nickname).grid(row=row, column=1)
             row += 1
