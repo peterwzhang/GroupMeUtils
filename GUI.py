@@ -225,13 +225,13 @@ class MainGUI:
             width=300,
             height=600
         )
-        action_frame.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
+        action_frame.pack(anchor=tk.W, fill=tk.Y, expand=False, side=tk.LEFT)
         member_frame = tk.Frame(
             new_group_win,
             width=300,
             height=600
         )
-        member_frame.grid(row=0, column=1, sticky=tk.N+tk.S+tk.E+tk.W)
+        member_frame.pack(anchor=tk.N, fill=tk.BOTH, expand=True, side=tk.LEFT )
         if group.image_url is not None:
             pfp_render = get_img_from_url(group.image_url, 150, 150)
         else:
