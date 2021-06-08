@@ -13,6 +13,34 @@ def config_frame(canvas):
     canvas.configure(scrollregion=canvas.bbox(tk.ALL))
 
 
+def make_return_btn(root, return_func):
+    return_btn = tk.Button(
+        root,
+        text='Return'
+    )
+    return_btn.bind('<Button-1>', lambda e: return_func())
+    return_btn.pack()
+
+
+def make_scrollable_canvas(root, load_func, func_data=None):
+    mem_canvas = tk.Canvas(
+        root,
+        borderwidth=0
+    )
+    mem_frame = tk.Frame(
+        mem_canvas
+    )
+    vsb = tk.Scrollbar(root, orient=tk.VERTICAL, command=mem_canvas.yview)
+    mem_canvas.configure(yscrollcommand=vsb.set)
+    vsb.pack(side=tk.RIGHT, fill=tk.Y)
+    mem_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    mem_canvas.create_window((0, 0), window=mem_frame, anchor=tk.NW)
+    mem_frame.bind('<Configure>', lambda e: config_frame(mem_canvas))
+    if func_data is None:
+        load_func(mem_frame)
+    else:
+        load_func(mem_frame, func_data)
+
 # return a render of an image from a url TODO: find way to improve performance
 def get_img_from_url(url, x, y):
     resp = requests.get(url)
@@ -136,26 +164,28 @@ class MainGUI:
     def setup_dms_menu(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '300x600', False, False)
-        return_btn = tk.Button(
-            self.main_frame,
-            text='Return'
-        )
-        return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
-        return_btn.pack()
-        dm_canvas = tk.Canvas(
-            self.main_frame,
-            borderwidth=0
-        )
-        dm_frame = tk.Frame(
-            dm_canvas
-        )
-        vsb = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=dm_canvas.yview)
-        dm_canvas.configure(yscrollcommand=vsb.set)
-        vsb.pack(side=tk.RIGHT, fill=tk.Y)
-        dm_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        dm_canvas.create_window((0, 0), window=dm_frame, anchor=tk.NW)
-        dm_frame.bind('<Configure>', lambda e: config_frame(dm_canvas))
-        self.load_dms(dm_frame)
+        make_return_btn(self.main_frame, self.setup_main_menu)
+        # return_btn = tk.Button(
+        #     self.main_frame,
+        #     text='Return'
+        # )
+        # return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
+        # return_btn.pack()
+        make_scrollable_canvas(self.main_frame, self.load_dms)
+        # dm_canvas = tk.Canvas(
+        #     self.main_frame,
+        #     borderwidth=0
+        # )
+        # dm_frame = tk.Frame(
+        #     dm_canvas
+        # )
+        # vsb = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=dm_canvas.yview)
+        # dm_canvas.configure(yscrollcommand=vsb.set)
+        # vsb.pack(side=tk.RIGHT, fill=tk.Y)
+        # dm_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # dm_canvas.create_window((0, 0), window=dm_frame, anchor=tk.NW)
+        # dm_frame.bind('<Configure>', lambda e: config_frame(dm_canvas))
+        # self.load_dms(dm_frame)
 
     # TODO: picture for no avatar
     def load_dms(self, frame):
@@ -174,26 +204,28 @@ class MainGUI:
     def setup_groups_menu(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '300x600', False, False)
-        return_btn = tk.Button(
-            self.main_frame,
-            text='Return'
-        )
-        return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
-        return_btn.pack()
-        group_canvas = tk.Canvas(
-            self.main_frame,
-            borderwidth=0
-        )
-        group_frame = tk.Frame(
-            group_canvas
-        )
-        vsb = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=group_canvas.yview)
-        group_canvas.configure(yscrollcommand=vsb.set)
-        vsb.pack(side=tk.RIGHT, fill=tk.Y)
-        group_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        group_canvas.create_window((0, 0), window=group_frame, anchor=tk.NW)
-        group_frame.bind('<Configure>', lambda e: config_frame(group_canvas))
-        self.load_groups(group_frame)
+        make_return_btn(self.main_frame, self.setup_main_menu)
+        # return_btn = tk.Button(
+        #     self.main_frame,
+        #     text='Return'
+        # )
+        # return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
+        # return_btn.pack()
+        make_scrollable_canvas(self.main_frame, self.load_groups)
+        # group_canvas = tk.Canvas(
+        #     self.main_frame,
+        #     borderwidth=0
+        # )
+        # group_frame = tk.Frame(
+        #     group_canvas
+        # )
+        # vsb = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=group_canvas.yview)
+        # group_canvas.configure(yscrollcommand=vsb.set)
+        # vsb.pack(side=tk.RIGHT, fill=tk.Y)
+        # group_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # group_canvas.create_window((0, 0), window=group_frame, anchor=tk.NW)
+        # group_frame.bind('<Configure>', lambda e: config_frame(group_canvas))
+        # self.load_groups(group_frame)
 
     # TODO: picture for no group avatar
     def load_groups(self, frame):
@@ -216,6 +248,7 @@ class MainGUI:
             row += 1
 
     def open_group_window(self, group):
+        group.refresh_from_server()
         new_group_win = tk.Toplevel(self.root)
         new_group_win.title(group.name)
         new_group_win.geometry('600x600')
@@ -244,27 +277,26 @@ class MainGUI:
             text=group.name
         )
         name_lbl.pack(anchor=tk.CENTER)
-
-        mem_canvas = tk.Canvas(
-            member_frame,
-            borderwidth=0
-        )
-        mem_frame = tk.Frame(
-            mem_canvas
-        )
-        vsb = tk.Scrollbar(member_frame, orient=tk.VERTICAL, command=mem_canvas.yview)
-        mem_canvas.configure(yscrollcommand=vsb.set)
-        vsb.pack(side=tk.RIGHT, fill=tk.Y)
-        mem_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        mem_canvas.create_window((0, 0), window=mem_frame, anchor=tk.NW)
-        mem_frame.bind('<Configure>', lambda e: config_frame(mem_canvas))
-        self.load_members(mem_frame, group)
+        make_scrollable_canvas(member_frame, self.load_members, group)
+        # mem_canvas = tk.Canvas(
+        #     member_frame,
+        #     borderwidth=0
+        # )
+        # mem_frame = tk.Frame(
+        #     mem_canvas
+        # )
+        # vsb = tk.Scrollbar(member_frame, orient=tk.VERTICAL, command=mem_canvas.yview)
+        # mem_canvas.configure(yscrollcommand=vsb.set)
+        # vsb.pack(side=tk.RIGHT, fill=tk.Y)
+        # mem_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # mem_canvas.create_window((0, 0), window=mem_frame, anchor=tk.NW)
+        # mem_frame.bind('<Configure>', lambda e: config_frame(mem_canvas))
+        # self.load_members(mem_frame, group)
 
         new_group_win.mainloop()
 
     def load_members(self, frame, group):
         row = 0
-        group.refresh_from_server()
         for mem in group.members:
             if mem.image_url != '' and mem.image_url is not None:
                 pfp_render = get_img_from_url(mem.image_url, 50, 50)
@@ -275,3 +307,6 @@ class MainGUI:
             pfp.grid(row=row, column=0)
             tk.Label(frame, text=mem.nickname).grid(row=row, column=1)
             row += 1
+
+    # def load_messages(self, frame, group):
+
