@@ -277,6 +277,11 @@ class MainGUI:
             text=group.name
         )
         name_lbl.pack(anchor=tk.CENTER)
+        save_pfp_btn = tk.Button(
+            action_frame,
+            text='Save Picture'
+        )
+        save_pfp_btn.pack(anchor=tk.CENTER)
         make_scrollable_canvas(member_frame, self.load_members, group)
         # mem_canvas = tk.Canvas(
         #     member_frame,
@@ -292,7 +297,7 @@ class MainGUI:
         # mem_canvas.create_window((0, 0), window=mem_frame, anchor=tk.NW)
         # mem_frame.bind('<Configure>', lambda e: config_frame(mem_canvas))
         # self.load_members(mem_frame, group)
-
+        self.load_messages(member_frame, group)
         new_group_win.mainloop()
 
     def load_members(self, frame, group):
@@ -308,5 +313,7 @@ class MainGUI:
             tk.Label(frame, text=mem.nickname).grid(row=row, column=1)
             row += 1
 
-    # def load_messages(self, frame, group):
-
+    def load_messages(self, frame, dm_or_group):
+        messages = list(dm_or_group.messages.list().autopage())
+        for msg in messages[::-1]:
+            print(f'[{msg.created_at}] {msg.name}: {msg.text} ({len(msg.favorited_by)} likes)')
