@@ -282,6 +282,21 @@ class MainGUI:
             text='Save Picture'
         )
         save_pfp_btn.pack(anchor=tk.CENTER)
+        save_msg_btn = tk.Button(
+            action_frame,
+            text='Save Messages'
+        )
+        save_msg_btn.pack(anchor=tk.CENTER)
+        like_all_btn = tk.Button(
+            action_frame,
+            text='Like All Messages'
+        )
+        like_all_btn.pack(anchor=tk.CENTER)
+        spam_msg_btn = tk.Button(
+            action_frame,
+            text='Spam Message'
+        )
+        spam_msg_btn.pack(anchor=tk.CENTER)
         make_scrollable_canvas(member_frame, self.load_members, group)
         # mem_canvas = tk.Canvas(
         #     member_frame,
