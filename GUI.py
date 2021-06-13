@@ -9,6 +9,11 @@ import tkinter as tk
 import webbrowser
 
 
+def spam_message(message, group_or_dm, num):
+    for i in range(num):
+        group_or_dm.post(text=message)
+
+
 def save_to_clip(text):
     clip = tk.Tk()
     clip.withdraw()
@@ -266,7 +271,7 @@ class MainGUI:
             pfp = tk.Label(frame, image=pfp_render)
             pfp.image = pfp_render
             pfp.grid(row=row, column=0)
-            tk.Label(frame, text=chat.other_user['name']).grid(row=row, column=1)
+            tk.Label(frame, text=f'{chat.other_user["name"]}\n({chat.other_user["id"]})').grid(row=row, column=1)
             row += 1
 
     def setup_groups_menu(self):
@@ -306,7 +311,7 @@ class MainGUI:
             pfp = tk.Label(frame, image=pfp_render)
             pfp.image = pfp_render
             pfp.grid(row=row, column=0)
-            tk.Label(frame, text=group.name).grid(row=row, column=1)
+            tk.Label(frame, text=f'{group.name}\n({group.id})').grid(row=row, column=1)
             load_btn = tk.Button(
                 frame,
                 text='Open'
@@ -386,9 +391,17 @@ class MainGUI:
         )
         copy_share_btn.pack(anchor=tk.CENTER)
         copy_share_btn.bind('<Button-1>', lambda e: save_to_clip(group.share_url))
+        msg_scale = tk.Scale(
+            action_frame,
+            from_=1,
+            to_=500,
+            length=150,
+            orient=tk.HORIZONTAL
+        )
+        msg_scale.pack(anchor=tk.CENTER)
         msg_ent = tk.Entry(
             action_frame,
-            width=20
+            width=25
         )
         msg_ent.pack()
         spam_msg_btn = tk.Button(
@@ -396,10 +409,11 @@ class MainGUI:
             text='Spam Message',
             width=20
         )
+        spam_msg_btn.bind('<Button-1>', lambda e: spam_message(msg_ent.get(), group, msg_scale.get()))
         spam_msg_btn.pack(anchor=tk.CENTER)
         transfer_id_ent = tk.Entry(
             action_frame,
-            width=20
+            width=25
         )
         transfer_id_ent.pack()
         transfer_btn = tk.Button(
