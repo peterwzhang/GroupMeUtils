@@ -3,10 +3,74 @@ from groupy.client import Client
 from groupy import exceptions
 from io import BytesIO
 from PIL import Image, ImageTk
-import tkinter as tk
+import os
 import requests
+import tkinter as tk
 import webbrowser
-import copy
+
+
+def save_to_clip(text):
+    clip = tk.Tk()
+    clip.withdraw()
+    clip.clipboard_clear()
+    clip.clipboard_append(text)
+    clip.update()
+    clip.destroy()
+
+
+def load_members(frame, group):
+    row = 0
+    for mem in group.members:
+        if mem.image_url != '' and mem.image_url is not None:
+            pfp_render = get_img_from_url(mem.image_url, 50, 50)
+        else:
+            pfp_render = create_empty_img(50, 50)
+        pfp = tk.Label(frame, image=pfp_render)
+        pfp.image = pfp_render
+        pfp.grid(row=row, column=0)
+        tk.Label(frame, text=mem.nickname).grid(row=row, column=1)
+        row += 1
+
+
+def make_folder(name):
+    directory = os.path.join(os.getcwd(), name)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    return directory
+
+
+def save_messages(dm_or_group):
+    downloads_path = make_folder('downloads')
+    filename = dm_or_group.name + '.txt'
+    path = os.path.join(downloads_path, filename)
+    f = open(path, 'w')
+    messages = list(dm_or_group.messages.list().autopage())
+    for msg in messages[::-1]:
+        f.write(f'[{msg.created_at}] {msg.name}: {msg.text} ({len(msg.favorited_by)} likes)\n')
+    f.close()
+
+
+def like_all(dm_or_group):
+    messages = list(dm_or_group.messages.list().autopage())
+    for msg in messages[::-1]:
+        msg.like()
+
+
+def unlike_all(dm_or_group):
+    messages = list(dm_or_group.messages.list().autopage())
+    for msg in messages[::-1]:
+        msg.unlike()
+
+
+def save_picture(url, name):
+    resp = requests.get(url)
+    if resp.status_code == 200:
+        directory = make_folder('downloads')
+        filename = name + '.png'
+        path = os.path.join(directory, filename)
+        f = open(path, 'wb')
+        f.write(resp.content)
+        f.close()
 
 
 def config_frame(canvas):
@@ -41,13 +105,15 @@ def make_scrollable_canvas(root, load_func, func_data=None):
     else:
         load_func(mem_frame, func_data)
 
+
 # return a render of an image from a url TODO: find way to improve performance
 def get_img_from_url(url, x, y):
     resp = requests.get(url)
-    img = Image.open(BytesIO(resp.content))
-    img = img.resize((x, y), Image.ANTIALIAS)
-    render = ImageTk.PhotoImage(img)
-    return render
+    if resp.status_code == 200:
+        img = Image.open(BytesIO(resp.content))
+        img = img.resize((x, y), Image.ANTIALIAS)
+        render = ImageTk.PhotoImage(img)
+        return render
 
 
 def create_empty_img(x, y):
@@ -130,7 +196,8 @@ class MainGUI:
                  f'Name: {user_info["name"]}\n'
                  f'Email: {user_info["email"]}\n'
                  f'Phone: {user_info["phone_number"]}\n'
-                 f'Creation Date: {datetime.fromtimestamp(user_info["created_at"])}'
+                 f'Creation Date: {datetime.fromtimestamp(user_info["created_at"])}',
+            justify=tk.LEFT
         )
         profile_info_lbl.grid(row=0, column=0)
         prof_render = get_img_from_url(user_info['image_url'], 100, 100)
@@ -159,6 +226,7 @@ class MainGUI:
             self.main_frame,
             text='Save Picture'
         )
+        save_pfp_btn.bind('<Button-1>', lambda e: save_picture(user_info['image_url'], user_info['id']))
         save_pfp_btn.grid(row=1, column=1)
 
     def setup_dms_menu(self):
@@ -264,7 +332,7 @@ class MainGUI:
             width=300,
             height=600
         )
-        member_frame.pack(anchor=tk.N, fill=tk.BOTH, expand=True, side=tk.LEFT )
+        member_frame.pack(anchor=tk.N, fill=tk.BOTH, expand=True, side=tk.LEFT)
         if group.image_url is not None:
             pfp_render = get_img_from_url(group.image_url, 150, 150)
         else:
@@ -274,30 +342,73 @@ class MainGUI:
         pfp.pack(anchor=tk.CENTER)
         name_lbl = tk.Label(
             action_frame,
-            text=group.name
+            text=f'Id: {group.id}\n'
+                 f'Name: {group.name}\n'
+                 f'Phone: {group.phone_number}\n'
+                 f'Creation Date:\n {group.created_at}',
+            width=20,
+            wraplength=125,
+            justify=tk.LEFT
         )
-        name_lbl.pack(anchor=tk.CENTER)
+        name_lbl.pack(anchor=tk.E)
         save_pfp_btn = tk.Button(
             action_frame,
-            text='Save Picture'
+            text='Save Picture',
+            width=20
         )
+        save_pfp_btn.bind('<Button-1>', lambda e: save_picture(group.image_url, group.name))
         save_pfp_btn.pack(anchor=tk.CENTER)
         save_msg_btn = tk.Button(
             action_frame,
-            text='Save Messages'
+            text='Save Messages',
+            width=20
         )
+        save_msg_btn.bind('<Button-1>', lambda e: save_messages(group))
         save_msg_btn.pack(anchor=tk.CENTER)
         like_all_btn = tk.Button(
             action_frame,
-            text='Like All Messages'
+            text='Like All Messages',
+            width=20
         )
+        like_all_btn.bind('<Button-1>', lambda e: like_all(group))
         like_all_btn.pack(anchor=tk.CENTER)
+        unlike_all_btn = tk.Button(
+            action_frame,
+            text='Unlike All Messages',
+            width=20
+        )
+        unlike_all_btn.bind('<Button-1>', lambda e: unlike_all(group))
+        unlike_all_btn.pack(anchor=tk.CENTER)
+        copy_share_btn = tk.Button(
+            action_frame,
+            text='Copy Share URL',
+            width=20
+        )
+        copy_share_btn.pack(anchor=tk.CENTER)
+        copy_share_btn.bind('<Button-1>', lambda e: save_to_clip(group.share_url))
+        msg_ent = tk.Entry(
+            action_frame,
+            width=20
+        )
+        msg_ent.pack()
         spam_msg_btn = tk.Button(
             action_frame,
-            text='Spam Message'
+            text='Spam Message',
+            width=20
         )
         spam_msg_btn.pack(anchor=tk.CENTER)
-        make_scrollable_canvas(member_frame, self.load_members, group)
+        transfer_id_ent = tk.Entry(
+            action_frame,
+            width=20
+        )
+        transfer_id_ent.pack()
+        transfer_btn = tk.Button(
+            action_frame,
+            text='Transfer Members',
+            width=20
+        )
+        transfer_btn.pack(anchor=tk.CENTER)
+        make_scrollable_canvas(member_frame, load_members, group)
         # mem_canvas = tk.Canvas(
         #     member_frame,
         #     borderwidth=0
@@ -312,23 +423,4 @@ class MainGUI:
         # mem_canvas.create_window((0, 0), window=mem_frame, anchor=tk.NW)
         # mem_frame.bind('<Configure>', lambda e: config_frame(mem_canvas))
         # self.load_members(mem_frame, group)
-        self.load_messages(member_frame, group)
         new_group_win.mainloop()
-
-    def load_members(self, frame, group):
-        row = 0
-        for mem in group.members:
-            if mem.image_url != '' and mem.image_url is not None:
-                pfp_render = get_img_from_url(mem.image_url, 50, 50)
-            else:
-                pfp_render = create_empty_img(50, 50)
-            pfp = tk.Label(frame, image=pfp_render)
-            pfp.image = pfp_render
-            pfp.grid(row=row, column=0)
-            tk.Label(frame, text=mem.nickname).grid(row=row, column=1)
-            row += 1
-
-    def load_messages(self, frame, dm_or_group):
-        messages = list(dm_or_group.messages.list().autopage())
-        for msg in messages[::-1]:
-            print(f'[{msg.created_at}] {msg.name}: {msg.text} ({len(msg.favorited_by)} likes)')
