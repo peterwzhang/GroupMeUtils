@@ -9,6 +9,25 @@ import tkinter as tk
 import webbrowser
 
 
+def mem_to_dict(m):
+    member = {
+        'nickname': m.nickname,
+        'user_id': m.user_id
+    }
+    return member
+
+
+def transfer_members(n_group_id, members, client):
+    try:
+        group = client.groups.get(n_group_id)
+        m_list = []
+        for m in members:
+            m_list.append(mem_to_dict(m))
+        group.add_multiple(*m_list)
+    except exceptions.BadResponse:
+        print('Group not found')
+
+
 def spam_message(message, group_or_dm, num):
     for i in range(num):
         group_or_dm.post(text=message)
@@ -421,6 +440,7 @@ class MainGUI:
             text='Transfer Members',
             width=20
         )
+        transfer_btn.bind('<Button-1>', lambda e: transfer_members(transfer_id_ent.get(), group.members, self.client))
         transfer_btn.pack(anchor=tk.CENTER)
         make_scrollable_canvas(member_frame, load_members, group)
         # mem_canvas = tk.Canvas(
