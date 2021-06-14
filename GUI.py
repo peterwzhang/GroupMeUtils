@@ -1,4 +1,5 @@
 from datetime import datetime
+from groupy.api import memberships
 from groupy.client import Client
 from groupy import exceptions
 from io import BytesIO
@@ -37,7 +38,7 @@ def mem_to_dict(m):
 
 def transfer_members(n_group_id, members, client):
     try:
-        group = client.groups.get(n_group_id)
+        group = memberships.Memberships(client.session, n_group_id)
         m_list = []
         for m in members:
             m_list.append(mem_to_dict(m))
