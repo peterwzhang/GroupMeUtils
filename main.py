@@ -20,6 +20,7 @@ if __name__ == "__main__":
 
     group = client.groups.get('61124351')  # this is an empty test group
     print(group.data)
+    print(group.members)
     # print(client.user.get_me())
     # for msg in group.messages.list_all():
     #     print(msg.text)
