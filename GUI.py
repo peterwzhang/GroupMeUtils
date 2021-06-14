@@ -9,6 +9,24 @@ import tkinter as tk
 import webbrowser
 
 
+def setup_picture_name(name, g_dm_id, avatar_url, frame, row, load):
+    if load == 1 and avatar_url != '' and avatar_url is not None:
+        pfp_render = get_img_from_url(avatar_url, 50, 50)
+    else:
+        pfp_render = create_empty_img(50, 50)
+    pfp = tk.Label(frame, image=pfp_render)
+    pfp.image = pfp_render
+    pfp.grid(row=row, column=0)
+    tk.Label(frame, text=f'{name}\n{g_dm_id}').grid(row=row, column=1)
+
+
+def groups_to_id_list(g_list):
+    id_list = []
+    for g in g_list:
+        id_list.append(g.id)
+    return id_list
+
+
 def mem_to_dict(m):
     member = {
         'nickname': m.nickname,
@@ -42,20 +60,6 @@ def save_to_clip(text):
     clip.destroy()
 
 
-def load_members(frame, group):
-    row = 0
-    for mem in group.members:
-        if mem.image_url != '' and mem.image_url is not None:
-            pfp_render = get_img_from_url(mem.image_url, 50, 50)
-        else:
-            pfp_render = create_empty_img(50, 50)
-        pfp = tk.Label(frame, image=pfp_render)
-        pfp.image = pfp_render
-        pfp.grid(row=row, column=0)
-        tk.Label(frame, text=mem.nickname).grid(row=row, column=1)
-        row += 1
-
-
 def make_folder(name):
     directory = os.path.join(os.getcwd(), name)
     if not os.path.exists(directory):
@@ -63,9 +67,9 @@ def make_folder(name):
     return directory
 
 
-def save_messages(dm_or_group):
+def save_messages(dm_or_group, filename):
     downloads_path = make_folder('downloads')
-    filename = dm_or_group.name + '.txt'
+    filename = filename + '_log.txt'
     path = os.path.join(downloads_path, filename)
     f = open(path, 'w')
     messages = list(dm_or_group.messages.list().autopage())
@@ -76,13 +80,13 @@ def save_messages(dm_or_group):
 
 def like_all(dm_or_group):
     messages = list(dm_or_group.messages.list().autopage())
-    for msg in messages[::-1]:
+    for msg in messages:
         msg.like()
 
 
 def unlike_all(dm_or_group):
     messages = list(dm_or_group.messages.list().autopage())
-    for msg in messages[::-1]:
+    for msg in messages:
         msg.unlike()
 
 
@@ -130,7 +134,7 @@ def make_scrollable_canvas(root, load_func, func_data=None):
         load_func(mem_frame, func_data)
 
 
-# return a render of an image from a url TODO: find way to improve performance
+# return a render of an image from a url
 def get_img_from_url(url, x, y):
     resp = requests.get(url)
     if resp.status_code == 200:
@@ -147,13 +151,13 @@ def create_empty_img(x, y):
 
 
 class MainGUI:
-    client: Client = None
-    main_frame: tk.Frame = None
-    root: tk.Tk = None
 
     def __init__(self):
+        self.client = None
+        self.main_frame = None
         self.root = tk.Tk()
         self.setup_login()
+        self.picture_bool = tk.IntVar(self.root)
         self.root.mainloop()
 
     def clear_main(self):
@@ -170,7 +174,7 @@ class MainGUI:
         main_menu_frame.pack(fill=tk.BOTH, expand=True)
         self.main_frame = main_menu_frame
 
-    # TODO: figure out better size for window, improve handling for invalid tokens
+    # TODO: improve handling for invalid tokens
     def setup_login(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '250x100', False, False)
@@ -208,7 +212,6 @@ class MainGUI:
             # tell user their access token is incorrect
             print('Bad Token')
 
-    # TODO: make information copyable, make buttons work, make better loading
     def setup_main_menu(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '300x175', False, False)
@@ -252,85 +255,38 @@ class MainGUI:
         )
         save_pfp_btn.bind('<Button-1>', lambda e: save_picture(user_info['image_url'], user_info['id']))
         save_pfp_btn.grid(row=1, column=1)
+        img_load_box = tk.Checkbutton(self.main_frame, text='Load Pictures?', var=self.picture_bool)
+        img_load_box.grid(row=2, column=1)
 
     def setup_dms_menu(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '300x600', False, False)
         make_return_btn(self.main_frame, self.setup_main_menu)
-        # return_btn = tk.Button(
-        #     self.main_frame,
-        #     text='Return'
-        # )
-        # return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
-        # return_btn.pack()
         make_scrollable_canvas(self.main_frame, self.load_dms)
-        # dm_canvas = tk.Canvas(
-        #     self.main_frame,
-        #     borderwidth=0
-        # )
-        # dm_frame = tk.Frame(
-        #     dm_canvas
-        # )
-        # vsb = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=dm_canvas.yview)
-        # dm_canvas.configure(yscrollcommand=vsb.set)
-        # vsb.pack(side=tk.RIGHT, fill=tk.Y)
-        # dm_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        # dm_canvas.create_window((0, 0), window=dm_frame, anchor=tk.NW)
-        # dm_frame.bind('<Configure>', lambda e: config_frame(dm_canvas))
-        # self.load_dms(dm_frame)
 
-    # TODO: picture for no avatar
     def load_dms(self, frame):
         row = 0
         for chat in self.client.chats.list_all():
-            if chat.other_user['avatar_url'] != '':
-                pfp_render = get_img_from_url(chat.other_user['avatar_url'], 50, 50)
-            else:
-                pfp_render = create_empty_img(50, 50)
-            pfp = tk.Label(frame, image=pfp_render)
-            pfp.image = pfp_render
-            pfp.grid(row=row, column=0)
-            tk.Label(frame, text=f'{chat.other_user["name"]}\n({chat.other_user["id"]})').grid(row=row, column=1)
+            setup_picture_name(chat.other_user["name"], chat.other_user["id"], chat.other_user['avatar_url'], frame,
+                               row, self.picture_bool.get())
+            load_btn = tk.Button(
+                frame,
+                text='Open'
+            )
+            load_btn.bind('<Button-1>', lambda e, c=chat: self.open_dm_window(c))
+            load_btn.grid(row=row, column=2)
             row += 1
 
     def setup_groups_menu(self):
         self.clear_main()
         self.setup_window('GroupMeUtils', '300x600', False, False)
         make_return_btn(self.main_frame, self.setup_main_menu)
-        # return_btn = tk.Button(
-        #     self.main_frame,
-        #     text='Return'
-        # )
-        # return_btn.bind('<Button-1>', lambda e: self.setup_main_menu())
-        # return_btn.pack()
         make_scrollable_canvas(self.main_frame, self.load_groups)
-        # group_canvas = tk.Canvas(
-        #     self.main_frame,
-        #     borderwidth=0
-        # )
-        # group_frame = tk.Frame(
-        #     group_canvas
-        # )
-        # vsb = tk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=group_canvas.yview)
-        # group_canvas.configure(yscrollcommand=vsb.set)
-        # vsb.pack(side=tk.RIGHT, fill=tk.Y)
-        # group_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        # group_canvas.create_window((0, 0), window=group_frame, anchor=tk.NW)
-        # group_frame.bind('<Configure>', lambda e: config_frame(group_canvas))
-        # self.load_groups(group_frame)
 
-    # TODO: picture for no group avatar
     def load_groups(self, frame):
         row = 0
         for group in self.client.groups.list(omit='memberships'):
-            if group.image_url is not None:
-                pfp_render = get_img_from_url(group.image_url, 50, 50)
-            else:
-                pfp_render = create_empty_img(50, 50)
-            pfp = tk.Label(frame, image=pfp_render)
-            pfp.image = pfp_render
-            pfp.grid(row=row, column=0)
-            tk.Label(frame, text=f'{group.name}\n({group.id})').grid(row=row, column=1)
+            setup_picture_name(group.name, group.id, group.image_url, frame, row, self.picture_bool.get())
             load_btn = tk.Button(
                 frame,
                 text='Open'
@@ -339,7 +295,19 @@ class MainGUI:
             load_btn.grid(row=row, column=2)
             row += 1
 
+    def open_dm_window(self, chat):
+        self.setup_dm_win(chat)
+
     def open_group_window(self, group):
+        self.setup_group_win(group)
+
+    def load_members(self, frame, group):
+        row = 0
+        for mem in group.members:
+            setup_picture_name(mem.nickname, mem.id, mem.image_url, frame, row, self.picture_bool.get())
+            row += 1
+
+    def setup_group_win(self, group):
         group.refresh_from_server()
         new_group_win = tk.Toplevel(self.root)
         new_group_win.title(group.name)
@@ -380,14 +348,14 @@ class MainGUI:
             text='Save Picture',
             width=20
         )
-        save_pfp_btn.bind('<Button-1>', lambda e: save_picture(group.image_url, group.name))
+        save_pfp_btn.bind('<Button-1>', lambda e: save_picture(group.image_url, group.id))
         save_pfp_btn.pack(anchor=tk.CENTER)
         save_msg_btn = tk.Button(
             action_frame,
             text='Save Messages',
             width=20
         )
-        save_msg_btn.bind('<Button-1>', lambda e: save_messages(group))
+        save_msg_btn.bind('<Button-1>', lambda e: save_messages(group, group.id))
         save_msg_btn.pack(anchor=tk.CENTER)
         like_all_btn = tk.Button(
             action_frame,
@@ -408,12 +376,12 @@ class MainGUI:
             text='Copy Share URL',
             width=20
         )
-        copy_share_btn.pack(anchor=tk.CENTER)
         copy_share_btn.bind('<Button-1>', lambda e: save_to_clip(group.share_url))
+        copy_share_btn.pack(anchor=tk.CENTER)
         msg_scale = tk.Scale(
             action_frame,
             from_=1,
-            to_=500,
+            to_=100,
             length=150,
             orient=tk.HORIZONTAL
         )
@@ -422,7 +390,7 @@ class MainGUI:
             action_frame,
             width=25
         )
-        msg_ent.pack()
+        msg_ent.pack(anchor=tk.CENTER)
         spam_msg_btn = tk.Button(
             action_frame,
             text='Spam Message',
@@ -430,31 +398,111 @@ class MainGUI:
         )
         spam_msg_btn.bind('<Button-1>', lambda e: spam_message(msg_ent.get(), group, msg_scale.get()))
         spam_msg_btn.pack(anchor=tk.CENTER)
-        transfer_id_ent = tk.Entry(
+        options = groups_to_id_list(self.client.groups.list(omit='memberships'))
+        var = tk.StringVar(self.root)
+        var.set(options[0])
+        transfer_option_menu = tk.OptionMenu(
             action_frame,
-            width=25
+            var,
+            *options
         )
-        transfer_id_ent.pack()
+        transfer_option_menu.config(width=18)
+        transfer_option_menu.pack()
+
         transfer_btn = tk.Button(
             action_frame,
             text='Transfer Members',
             width=20
         )
-        transfer_btn.bind('<Button-1>', lambda e: transfer_members(transfer_id_ent.get(), group.members, self.client))
+        transfer_btn.bind('<Button-1>', lambda e: transfer_members(var.get(), group.members,
+                                                                   self.client))
         transfer_btn.pack(anchor=tk.CENTER)
-        make_scrollable_canvas(member_frame, load_members, group)
-        # mem_canvas = tk.Canvas(
-        #     member_frame,
-        #     borderwidth=0
-        # )
-        # mem_frame = tk.Frame(
-        #     mem_canvas
-        # )
-        # vsb = tk.Scrollbar(member_frame, orient=tk.VERTICAL, command=mem_canvas.yview)
-        # mem_canvas.configure(yscrollcommand=vsb.set)
-        # vsb.pack(side=tk.RIGHT, fill=tk.Y)
-        # mem_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        # mem_canvas.create_window((0, 0), window=mem_frame, anchor=tk.NW)
-        # mem_frame.bind('<Configure>', lambda e: config_frame(mem_canvas))
-        # self.load_members(mem_frame, group)
+        make_scrollable_canvas(member_frame, self.load_members, group)
         new_group_win.mainloop()
+
+    def setup_dm_win(self, chat):
+        new_group_win = tk.Toplevel(self.root)
+        new_group_win.title(chat.other_user['name'])
+        new_group_win.geometry('600x600')
+        new_group_win.resizable(600, 600)
+        action_frame = tk.Frame(
+            new_group_win,
+            width=300,
+            height=600
+        )
+        action_frame.pack(anchor=tk.W, fill=tk.Y, expand=False, side=tk.LEFT)
+        member_frame = tk.Frame(
+            new_group_win,
+            width=300,
+            height=600
+        )
+        member_frame.pack(anchor=tk.N, fill=tk.BOTH, expand=True, side=tk.LEFT)
+        if chat.other_user['avatar_url'] != '':
+            pfp_render = get_img_from_url(chat.other_user['avatar_url'], 150, 150)
+        else:
+            pfp_render = create_empty_img(150, 150)
+        pfp = tk.Label(action_frame, image=pfp_render)
+        pfp.image = pfp_render
+        pfp.pack(anchor=tk.CENTER)
+        name_lbl = tk.Label(
+            action_frame,
+            text=f'Id: {chat.other_user["id"]}\n'
+                 f'Name: {chat.other_user["name"]}\n',
+            width=20,
+            wraplength=125,
+            justify=tk.LEFT
+        )
+        name_lbl.pack(anchor=tk.E)
+        save_pfp_btn = tk.Button(
+            action_frame,
+            text='Save Picture',
+            width=20
+        )
+        save_pfp_btn.bind('<Button-1>', lambda e: save_picture(chat.other_user['avatar_url'], chat.other_user["id"]))
+        save_pfp_btn.pack(anchor=tk.CENTER)
+        save_msg_btn = tk.Button(
+            action_frame,
+            text='Save Messages',
+            width=20
+        )
+        save_msg_btn.bind('<Button-1>', lambda e: save_messages(chat, chat.other_user['id']))
+        save_msg_btn.pack(anchor=tk.CENTER)
+        like_all_btn = tk.Button(
+            action_frame,
+            text='Like All Messages',
+            width=20
+        )
+        like_all_btn.bind('<Button-1>', lambda e: like_all(chat))
+        like_all_btn.pack(anchor=tk.CENTER)
+        unlike_all_btn = tk.Button(
+            action_frame,
+            text='Unlike All Messages',
+            width=20
+        )
+        unlike_all_btn.bind('<Button-1>', lambda e: unlike_all(chat))
+        unlike_all_btn.pack(anchor=tk.CENTER)
+        make_scrollable_canvas(member_frame, self.load_chat_members, chat)
+        new_group_win.mainloop()
+
+    def load_chat_members(self, frame, c):
+        row = 0
+        if self.picture_bool.get() == 1 and c.other_user['avatar_url'] != '':
+            pfp_render = get_img_from_url(c.other_user['avatar_url'], 50, 50)
+        else:
+            pfp_render = create_empty_img(50, 50)
+        pfp = tk.Label(frame, image=pfp_render)
+        pfp.image = pfp_render
+        pfp.grid(row=row, column=0)
+        tk.Label(frame, text=f'{c.other_user["name"]}\n{c.other_user["id"]}').grid(row=row, column=1)
+        row += 1
+        me = self.client.user.get_me()
+        if self.picture_bool.get() == 1 and me['image_url'] != '':
+            pfp_render = get_img_from_url(me['image_url'], 50, 50)
+        else:
+            pfp_render = create_empty_img(50, 50)
+        pfp = tk.Label(frame, image=pfp_render)
+        pfp.image = pfp_render
+        pfp.grid(row=row, column=0)
+        tk.Label(frame, text=f'{me["name"]}\n{me["id"]}').grid(row=row, column=1)
+
+
