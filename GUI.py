@@ -1,13 +1,23 @@
 from datetime import datetime
 from groupy.api import memberships
 from groupy.client import Client
-from groupy import exceptions
+from groupy import attachments, exceptions
 from io import BytesIO
 from PIL import Image, ImageTk
 import os
 import requests
 import tkinter as tk
 import webbrowser
+
+
+def mention_all(group):
+    loci_list = []
+    g_id_list = []
+    for m in group.members:
+        loci_list.append((0, 9))
+        g_id_list.append(m.id)
+    mentions = [attachments.Mentions(loci=loci_list, user_ids=g_id_list)]
+    group.post(text='@everyone', attachments=mentions)
 
 
 def setup_picture_name(name, g_dm_id, avatar_url, frame, row, load):
@@ -379,6 +389,13 @@ class MainGUI:
         )
         copy_share_btn.bind('<Button-1>', lambda e: save_to_clip(group.share_url))
         copy_share_btn.pack(anchor=tk.CENTER)
+        mention_btn = tk.Button(
+            action_frame,
+            text='Mention All',
+            width=20
+        )
+        mention_btn.bind('<Button-1>', lambda e: mention_all(group))
+        mention_btn.pack(anchor=tk.CENTER)
         msg_scale = tk.Scale(
             action_frame,
             from_=1,
