@@ -15,7 +15,7 @@ def mention_all(group):
     g_id_list = []
     for m in group.members:
         loci_list.append((0, 9))
-        g_id_list.append(m.id)
+        g_id_list.append(m.user_id)
     mentions = [attachments.Mentions(loci=loci_list, user_ids=g_id_list)]
     group.post(text='@everyone', attachments=mentions)
 
