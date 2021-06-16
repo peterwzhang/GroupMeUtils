@@ -10,6 +10,10 @@ import tkinter as tk
 import webbrowser
 
 
+def format_msg(msg):
+    return f'[{msg.created_at}] {msg.name}: {msg.text} ({len(msg.favorited_by)} likes)\n'
+
+
 def mention_all(group):
     loci_list = []
     g_id_list = []
@@ -85,7 +89,7 @@ def save_messages(dm_or_group, filename):
     f = open(path, 'w')
     messages = list(dm_or_group.messages.list().autopage())
     for msg in messages[::-1]:
-        f.write(f'[{msg.created_at}] {msg.name}: {msg.text} ({len(msg.favorited_by)} likes)\n')
+        f.write(format_msg(msg))
     f.close()
 
 
@@ -196,7 +200,7 @@ class MainGUI:
         api_key_lbl.pack()
         api_key_ent = tk.Entry(
             self.main_frame,
-            width=25
+            width=50
         )
         api_key_ent.pack()
         go_btn = tk.Button(
