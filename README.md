@@ -31,6 +31,7 @@ Once you have the items above, you can follow the instructions below:
   GroupMeUtils will still load pictures when it will not significantly increase load time when this
   option is left off.
 - The save message and save picture will save the files to a "downloads" folder in the current working directory.
+- On some systems the GUI might not be sized perfectly, but you can resize the window to make everything fit.
 
 ## Group Feature Guide
 Below is a picture of an opened group with some descriptions of what each button does:
