@@ -192,7 +192,7 @@ class MainGUI:
     # TODO: improve handling for invalid tokens
     def setup_login(self):
         self.clear_main()
-        self.setup_window('GroupMeUtils', '250x100', False, False)
+        self.setup_window('GroupMeUtils', '250x100', True, True)
         api_key_lbl = tk.Label(
             self.main_frame,
             text='Enter Access Token:'
@@ -229,7 +229,7 @@ class MainGUI:
 
     def setup_main_menu(self):
         self.clear_main()
-        self.setup_window('GroupMeUtils', '300x175', False, False)
+        self.setup_window('GroupMeUtils', '300x175', True, True)
         user_info = self.client.user.get_me()
 
         profile_info_lbl = tk.Label(
@@ -275,7 +275,7 @@ class MainGUI:
 
     def setup_dms_menu(self):
         self.clear_main()
-        self.setup_window('GroupMeUtils', '300x600', False, False)
+        self.setup_window('GroupMeUtils', '300x600', True, True)
         make_return_btn(self.main_frame, self.setup_main_menu)
         make_scrollable_canvas(self.main_frame, self.load_dms)
 
@@ -294,7 +294,7 @@ class MainGUI:
 
     def setup_groups_menu(self):
         self.clear_main()
-        self.setup_window('GroupMeUtils', '300x600', False, False)
+        self.setup_window('GroupMeUtils', '300x600', True, True)
         make_return_btn(self.main_frame, self.setup_main_menu)
         make_scrollable_canvas(self.main_frame, self.load_groups)
 
@@ -327,7 +327,7 @@ class MainGUI:
         new_group_win = tk.Toplevel(self.root)
         new_group_win.title(group.name)
         new_group_win.geometry('600x600')
-        new_group_win.resizable(600, 600)
+        new_group_win.resizable(True, True)
         action_frame = tk.Frame(
             new_group_win,
             width=300,
@@ -446,7 +446,7 @@ class MainGUI:
         new_group_win = tk.Toplevel(self.root)
         new_group_win.title(chat.other_user['name'])
         new_group_win.geometry('600x600')
-        new_group_win.resizable(600, 600)
+        new_group_win.resizable(True, True)
         action_frame = tk.Frame(
             new_group_win,
             width=300,
