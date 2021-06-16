@@ -216,3 +216,4 @@ fabric.properties
 
 # user token stuff
 config.py
+.idea/**
