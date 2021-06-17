@@ -1,4 +1,4 @@
-### GroupMe Utils
+### GroupMeUtils
 A tool that help accomplish some tedious tasks on [GroupMe](https://groupme.com)
 by using the GroupMe API.
 
