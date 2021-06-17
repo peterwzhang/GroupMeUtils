@@ -3,7 +3,7 @@ A tool that help accomplish some tedious tasks on [GroupMe](https://groupme.com)
 by using the GroupMe API.
 
 ## Setup
-In order to setup GroupMe Utils you need the following:  
+In order to setup GroupMeUtils you need the following:  
 - Your GroupMe Access Token (You can get this [here](https://dev.groupme.com/session/new), click access token at the top right)
 - Python3.4 or above (You can get this [here](https://www.python.org/downloads/)) 
 
