@@ -1,5 +1,5 @@
 ### GroupMeUtils
-A tool that help accomplish some tedious tasks on [GroupMe](https://groupme.com)
+A tool that help accomplish some repetitive tasks on [GroupMe](https://groupme.com)
 by using the GroupMe API.
 
 ## Setup
@@ -10,8 +10,7 @@ In order to setup GroupMeUtils you need the following:
 Once you have the items above, you can follow the instructions below:
 1. Clone the repository: `$ git clone https://github.com/PeterTheAmazingAsian/GroupMeUtils.git`
 2. Go into the new cloned directory: `$  cd GroupMeUtils/`
-3. Make a [virtual environment](https://docs.python.org/3/library/venv.html) (optional): `$ python -m venv venv`
-   - Activate the virtual environment ([click here for help](https://docs.python.org/3/library/venv.html))
+3. [Optional] Make a virtual environment and activate it ([click here for help](https://docs.python.org/3/library/venv.html))
 4. Install requirements: `$ pip install -r requirements.txt`
 5. Run: `$ python main.py`
 
