@@ -86,7 +86,7 @@ def save_messages(dm_or_group, filename):
     downloads_path = make_folder('downloads')
     filename = filename + '_log.txt'
     path = os.path.join(downloads_path, filename)
-    f = open(path, 'w')
+    f = open(path, 'w', encoding="utf-8")
     messages = list(dm_or_group.messages.list().autopage())
     for msg in messages[::-1]:
         f.write(format_msg(msg))
